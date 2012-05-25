@@ -10,6 +10,8 @@ as this is originally intended as a munki postinstall script.
 Created by Hannes Juutilainen, hjuutilainen@mac.com
 
 History:
+2012-05-25, Hannes Juutilainen
+- Added some error checking in main
 2012-05-24, Hannes Juutilainen
 - First version
 
@@ -128,11 +130,19 @@ def main(argv=None):
             print >> sys.stderr, "This script must be run as root"
             return 1
         
-        if chromeIsInstalled() and keystoneInstall() and registerChromeWithKeystone():
-            print "Automatic updates enabled"
-            return 0
-        else:
+        if not chromeIsInstalled():
             print >> sys.stderr, "Error: Chrome is not installed on this computer"
+            return 1
+        if keystoneInstall():
+        	print "Keystone installed"
+        else:
+            print >> sys.stderr, "Error: Keystone install failed"
+            return 1
+        if registerChromeWithKeystone():
+        	print "Registered Chrome with Keystone"
+        	return 0
+        else:
+            print >> sys.stderr, "Error: Failed to register Chrome with Keystone"
             return 1
     
     except Usage, err:
