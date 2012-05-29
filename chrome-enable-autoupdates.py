@@ -10,6 +10,8 @@ as this is originally intended as a munki postinstall script.
 Created by Hannes Juutilainen, hjuutilainen@mac.com
 
 History:
+2012-05-29, Hannes Juutilainen
+- Added more error checking
 2012-05-25, Hannes Juutilainen
 - Added some error checking in main
 2012-05-24, Hannes Juutilainen
@@ -68,7 +70,7 @@ def chromeKSProductID():
 
 
 def keystoneRegistrationFrameworkPath():
-    """Returns currently installed KeystoneRegistration.framework path"""
+    """Returns KeystoneRegistration.framework path"""
     keystoneRegistration = os.path.join(chromePath, 'Contents/Versions')
     keystoneRegistration = os.path.join(keystoneRegistration, chromeVersion())
     keystoneRegistration = os.path.join(keystoneRegistration, 'Google Chrome Framework.framework')
@@ -80,10 +82,14 @@ def keystoneInstall():
     """Install the current Keystone"""
     installScript = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/install.py')
     keystonePayload = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/Keystone.tbz')
-    retcode = subprocess.call([installScript, "--install", keystonePayload, '--root', '/'])
-    if retcode == 0:
-        return True
+    if os.path.exists(installScript) and os.path.exists(keystonePayload):
+        retcode = subprocess.call([installScript, "--install", keystonePayload, '--root', '/'])
+        if retcode == 0:
+            return True
+        else:
+            return False
     else:
+    	print >> sys.stderr, "Error: KeystoneRegistration.framework not found"
         return False
 
 
@@ -101,23 +107,27 @@ def removeChromeFromKeystone():
 def registerChromeWithKeystone():
     """Registers Chrome with Keystone"""
     ksadmin = "/Library/Google/GoogleSoftwareUpdate/GoogleSoftwareUpdate.bundle/Contents/MacOS/ksadmin"
-    ksadminProcess = [ksadmin,
-                    '--register',
-                    '--preserve-tttoken',
-                    '--productid',          chromeKSProductID(),
-                    '--version',            chromeVersion(),
-                    '--xcpath',             chromePath,
-                    '--url',                chromeKSUpdateURL(),
-                    '--tag-path',           tagPath,
-                    '--tag-key',            tagKey,
-                    '--brand-path',         brandPath,
-                    '--brand-key',          brandKey,
-                    '--version-path',       versionPath,
-                    '--version-key',        versionKey]
-    retcode = subprocess.call(ksadminProcess)
-    if retcode == 0:
-        return True
+    if os.path.exists(ksadmin):
+        ksadminProcess = [ksadmin,
+                        '--register',
+                        '--preserve-tttoken',
+                        '--productid',          chromeKSProductID(),
+                        '--version',            chromeVersion(),
+                        '--xcpath',             chromePath,
+                        '--url',                chromeKSUpdateURL(),
+                        '--tag-path',           tagPath,
+                        '--tag-key',            tagKey,
+                        '--brand-path',         brandPath,
+                        '--brand-key',          brandKey,
+                        '--version-path',       versionPath,
+                        '--version-key',        versionKey]
+        retcode = subprocess.call(ksadminProcess)
+        if retcode == 0:
+            return True
+        else:
+            return False
     else:
+    	print >> sys.stderr, "Error: %s doesn't exist" % ksadmin
         return False
 
 
@@ -134,13 +144,13 @@ def main(argv=None):
             print >> sys.stderr, "Error: Chrome is not installed on this computer"
             return 1
         if keystoneInstall():
-        	print "Keystone installed"
+            print "Keystone installed"
         else:
             print >> sys.stderr, "Error: Keystone install failed"
             return 1
         if registerChromeWithKeystone():
-        	print "Registered Chrome with Keystone"
-        	return 0
+            print "Registered Chrome with Keystone"
+            return 0
         else:
             print >> sys.stderr, "Error: Failed to register Chrome with Keystone"
             return 1
