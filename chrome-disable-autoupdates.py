@@ -68,7 +68,7 @@ def removeChromeFromKeystone():
         if retcode != 0:
             print >> sys.stderr, "Warning: ksadmin exited with code %i" % retcode
         else:
-        	print "Removed Chrome from Keystone"
+            print "Removed Chrome from Keystone"
     else:
         print >> sys.stderr, "Warning: %s not found" % ksadmin
         if not os.path.exists("/Library/Google/GoogleSoftwareUpdate/TicketStore/"):

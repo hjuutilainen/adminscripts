@@ -89,7 +89,7 @@ def keystoneInstall():
         else:
             return False
     else:
-    	print >> sys.stderr, "Error: KeystoneRegistration.framework not found"
+        print >> sys.stderr, "Error: KeystoneRegistration.framework not found"
         return False
 
 
@@ -127,7 +127,7 @@ def registerChromeWithKeystone():
         else:
             return False
     else:
-    	print >> sys.stderr, "Error: %s doesn't exist" % ksadmin
+        print >> sys.stderr, "Error: %s doesn't exist" % ksadmin
         return False
 
 
