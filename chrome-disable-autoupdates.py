@@ -27,8 +27,8 @@ import plistlib
 # =========================================
 removeKeystone = False
 
-chromePath = "/Applications/Google Chrome.app"
-infoPlistPath = os.path.realpath(os.path.join(chromePath, 'Contents/Info.plist'))
+googleSoftwareUpdate = "/Library/Google/GoogleSoftwareUpdate/GoogleSoftwareUpdate.bundle"
+chromeBundleID = "com.google.Chrome"
 
 
 class Usage(Exception):
@@ -36,40 +36,18 @@ class Usage(Exception):
         self.msg = msg
 
 
-def chromeIsInstalled():
-    """Check if Chrome is installed"""
-    if os.path.exists(chromePath):
+def keystoneIsInstalled():
+    """Check if Keystone is installed"""
+    if os.path.exists(googleSoftwareUpdate):
         return True
     else:
         return False
 
 
-def chromeVersion():
-    """Returns Chrome version"""
-    infoPlist = plistlib.readPlist(infoPlistPath)
-    bundleShortVersion = infoPlist["CFBundleShortVersionString"]
-    return bundleShortVersion
-
-
-def chromeKSProductID():
-    """Returns KSProductID from Chrome Info.plist"""
-    infoPlist = plistlib.readPlist(infoPlistPath)
-    KSProductID = infoPlist["KSProductID"]
-    return KSProductID
-
-
-def keystoneRegistrationFrameworkPath():
-    """Returns KeystoneRegistration.framework path"""
-    keystoneRegistration = os.path.join(chromePath, 'Contents/Versions')
-    keystoneRegistration = os.path.join(keystoneRegistration, chromeVersion())
-    keystoneRegistration = os.path.join(keystoneRegistration, 'Google Chrome Framework.framework')
-    keystoneRegistration = os.path.join(keystoneRegistration, 'Frameworks/KeystoneRegistration.framework')
-    return keystoneRegistration
-
-    
 def keystoneNuke():
     """Nuke the installed Keystone"""
-    installScript = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/install.py')
+    agentPath = os.path.join(googleSoftwareUpdate, "Contents/Resources/GoogleSoftwareUpdateAgent.app/Contents/Resources")
+    installScript = os.path.join(agentPath, "install.py")
     if os.path.exists(installScript):
         retcode = subprocess.call([installScript, "--nuke"])
         if retcode == 0:
@@ -82,14 +60,19 @@ def keystoneNuke():
 
 
 def removeChromeFromKeystone():
-    """Removes Chrome from Keystone"""
-    ksadmin = "/Library/Google/GoogleSoftwareUpdate/GoogleSoftwareUpdate.bundle/Contents/MacOS/ksadmin"
-    ksadminProcess = [  ksadmin, '--delete', '--productid',  chromeKSProductID()]
-    retcode = subprocess.call(ksadminProcess)
-    if retcode == 0:
-        return True
+    """Removes Chrome from Keystone. Only return False if ksadmin fails."""
+    ksadmin = os.path.join(googleSoftwareUpdate, "Contents/MacOS/ksadmin")
+    if os.path.exists(ksadmin):
+        ksadminProcess = [  ksadmin, '--delete', '--productid',  chromeBundleID]
+        retcode = subprocess.call(ksadminProcess)
+        if retcode != 0:
+            print >> sys.stderr, "Warning: ksadmin exited with code %i" % retcode
+        else:
+        	print "Removed Chrome from Keystone"
     else:
-        return False
+        print >> sys.stderr, "Warning: %s not found" % ksadmin
+        if not os.path.exists("/Library/Google/GoogleSoftwareUpdate/TicketStore/"):
+            print >> sys.stderr, "Warning: No ticket store either."
 
 
 def printUsage():
@@ -125,10 +108,10 @@ def main(argv=None):
             print >> sys.stderr, "This script must be run as root"
             return 1
         
-        # Check that Chrome is actually installed
-        if not chromeIsInstalled():
-            print >> sys.stderr, "Error: Chrome is not installed on this computer"
-            return 1
+        # Check if Keystone is actually installed
+        if not keystoneIsInstalled():
+            print "Nothing to do. Keystone is not installed on this computer"
+            return 0
         
         if removeKeystone:
             if keystoneNuke():
@@ -136,14 +119,10 @@ def main(argv=None):
                 return 0
             else:
                 print >> sys.stderr, "Error: Keystone nuke failed"
-                return 1
-        
-        if removeChromeFromKeystone():
-            print "Removed Chrome from Keystone"
-            return 0
+                return 0
         else:
-            print >> sys.stderr, "Error: Failed to remove Chrome from Keystone"
-            return 1
+            removeChromeFromKeystone()
+            return 0
     
     except Usage, err:
         print >>sys.stderr, err.msg
