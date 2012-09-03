@@ -10,10 +10,17 @@ as this is originally intended as a munki postinstall script.
 Created by Hannes Juutilainen, hjuutilainen@mac.com
 
 History:
+--------
+
+2012-08-31, Hannes Juutilainen
+- Added --force flag to keystoneInstall as suggested by Riley Shott
+
 2012-05-29, Hannes Juutilainen
 - Added more error checking
+
 2012-05-25, Hannes Juutilainen
 - Added some error checking in main
+
 2012-05-24, Hannes Juutilainen
 - First version
 
@@ -83,7 +90,7 @@ def keystoneInstall():
     installScript = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/install.py')
     keystonePayload = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/Keystone.tbz')
     if os.path.exists(installScript) and os.path.exists(keystonePayload):
-        retcode = subprocess.call([installScript, "--install", keystonePayload, '--root', '/'])
+        retcode = subprocess.call([installScript, '--install', keystonePayload, '--root', '/', '--force'])
         if retcode == 0:
             return True
         else:
