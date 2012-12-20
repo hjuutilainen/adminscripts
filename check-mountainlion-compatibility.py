@@ -91,12 +91,12 @@ def isSystemVersionSupported():
                 "Failed")
         return False
     elif StrictVersion(productVersion) >= StrictVersion('10.6.6'):
-        logger("System", 
+        logger("System",
                 "%s %s" % (productName, productVersion),
                 "OK")
         return True
     else:
-        logger("System", 
+        logger("System",
                 "%s %s" % (productName, productVersion),
                 "Failed")
         return False
@@ -105,8 +105,8 @@ def isSystemVersionSupported():
 def getBoardID():
     ioregProcess = [ "/usr/sbin/ioreg",
                      "-p", "IODeviceTree",
-                     "-r", 
-                     "-n", "/", 
+                     "-r",
+                     "-n", "/",
                      "-d", "1" ]
     p1 = subprocess.Popen(ioregProcess, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     p2 = subprocess.Popen(["/usr/bin/grep", "board-id"], stdin=p1.stdout, stdout=subprocess.PIPE)
@@ -124,12 +124,12 @@ def is64BitCapable():
     p = subprocess.Popen(sysctlProcess, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (results, err) = p.communicate()
     if bool(results):
-        logger("CPU", 
+        logger("CPU",
                 "64 bit capable",
                 "OK")
         return True
     else:
-        logger("CPU", 
+        logger("CPU",
                 "not 64 bit capable",
                 "Failed")
         return False
@@ -143,12 +143,12 @@ def hasRequiredAmountOfRAM():
     actualRAM = int(results)
     actualRAMGigabytes = actualRAM / 1024 / 1024 / 1024
     if actualRAM >= minimumRam:
-        logger("Memory", 
+        logger("Memory",
                 "%i GB physical memory installed" % (actualRAMGigabytes),
                 "OK")
         return True
     else:
-        logger("Memory", 
+        logger("Memory",
                 "%i GB installed, 2 GB required" % (actualRAMGigabytes),
                 "Failed")
         return False
@@ -160,7 +160,7 @@ def isVirtualMachine():
     (results, err) = p.communicate()
     for aFeature in results.split():
         if aFeature == "VMM":
-            logger("Board ID", 
+            logger("Board ID",
                     "Virtual machine",
                     "OK")
             return True
@@ -246,30 +246,29 @@ def appendConditionalItems(aDict):
         output_dict = dict(existing_dict.items() + aDict.items())
     else:
         output_dict = aDict
-    if os.access(conditionalitemspath, os.W_OK):
-        plistlib.writePlist(output_dict, conditionalitemspath)
+    plistlib.writePlist(output_dict, conditionalitemspath)
     pass
 
 def main(argv=None):
     mountainlion_supported_dict = {}
-    
+
     # Run the checks
     boardIDPassed = isSupportedBoardID()
     memoryPassed = hasRequiredAmountOfRAM()
     cpuPassed = is64BitCapable()
     systemVersionPassed = isSystemVersionSupported()
-    
+
     if ( boardIDPassed and memoryPassed and cpuPassed and systemVersionPassed ):
         mountainLionSupported = 0
         mountainlion_supported_dict = { 'mountainlion_supported': True }
     else:
         mountainLionSupported = 1
         mountainlion_supported_dict = { 'mountainlion_supported': False }
-    
+
     # Update "ConditionalItems.plist" if munki is installed
     if ( munkiInstalled() and updateMunkiConditionalItems ):
         appendConditionalItems(mountainlion_supported_dict)
-    
+
     # Exit codes:
     # 0 = Mountain Lion is supported
     # 1 = Mountain Lion is not supported
