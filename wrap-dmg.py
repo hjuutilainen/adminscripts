@@ -18,6 +18,16 @@ import plistlib
 # Options for creating the disk image
 # ===================================================
 dmgFormat	= 'UDZO'	# UDIF zlib-compressed
+#dmgFormat   = 'UDRO'    # UDIF read-only image
+
+# Formats that make sense in this context:
+# UDRO - UDIF read-only image
+# UDCO - UDIF ADC-compressed image
+# UDZO - UDIF zlib-compressed image
+# UDBZ - UDIF bzip2-compressed image (OS X 10.4+ only)
+# UFBI - UDIF entire image with MD5 checksum
+# UDTO - DVD/CD-R master for export
+
 dmgUid		= '99'		# Who ever is mounting
 dmgGid		= '99'		# Who ever is mounting
 dmgMode		= '555'		# Read-only
