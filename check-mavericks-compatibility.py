@@ -265,31 +265,83 @@ def append_conditional_items(dictionary):
     plistlib.writePlist(output_dict, current_conditional_items_path)
     pass
 
-
+def check_firmware_version():
+    """docstring for check_firmware_version"""
+    cmd = ["ioreg", "-p", "IOService",
+            "-n", "IOAHCIDevice@0",
+            "-r",
+            "-l",
+            "-a"]
+    p1 = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (result, err) = p1.communicate()
+    ioregplist = plistlib.readPlistFromString(result)
+    for i in ioregplist:
+        for j in i.iteritems():
+            if 'IORegistryEntryChildren' in j:
+                for k in j[1]:
+                    for l in k.iteritems():
+                        if 'IORegistryEntryChildren' in l:
+                            for m in l[1]:
+                                if 'Device Characteristics' in m:
+                                    device = m['Device Characteristics']
+                                    return device.get('Product Name').rstrip(), device.get('Product Revision Level').rstrip()
+                                else:
+                                    return 1
+def is_firmware_compatible():
+    """docstring for needs_ssd_fw_update"""
+    if is_virtual_machine():
+        return True
+    revisions = ['TPSABBF0', 'TPVABBF0']
+    models = ['TS064E', 'TS128E']
+    
+    model, revision = check_firmware_version()
+    if any(mod in model for mod in models) and any(rev in revision for rev in revisions):
+        logger("SSD Firmware",
+               "Needs update",
+               "Yes")
+        return False
+    else:
+        logger("SSD Firmware",
+               "Needs update",
+               "No")
+        return True
+    
 def main(argv=None):
     mavericks_supported_dict = {}
+    mavericks_needs_fw_update_dict = {}
 
     # Run the checks
     board_id_passed = is_supported_board_id()
+    firmware_passed = is_firmware_compatible()
     memory_passed = has_required_amount_of_memory()
     cpu_passed = is_64bit_capable()
     system_version_passed = is_system_version_supported()
 
-    if board_id_passed and memory_passed and cpu_passed and system_version_passed:
+    if board_id_passed and memory_passed and cpu_passed and system_version_passed and firmware_passed:
         mavericks_supported = 0
+        mavericks_needs_fw_update = 0
         mavericks_supported_dict = {'mavericks_supported': True}
+        mavericks_needs_fw_update_dict = {'mavericks_needs_fw_update': False}
+    elif board_id_passed and memory_passed and cpu_passed and system_version_passed and not firmware_passed:
+        mavericks_supported = 0
+        mavericks_needs_fw_update = 1
+        mavericks_supported_dict = {'mavericks_supported': True}
+        mavericks_needs_fw_update_dict = {'mavericks_needs_fw_update': True}
     else:
         mavericks_supported = 1
+        mavericks_needs_fw_update = 1
         mavericks_supported_dict = {'mavericks_supported': False}
+        mavericks_needs_fw_update_dict = {'mavericks_needs_fw_update': False}
 
     # Update "ConditionalItems.plist" if munki is installed
     if munki_installed() and updateMunkiConditionalItems:
         append_conditional_items(mavericks_supported_dict)
+        append_conditional_items(mavericks_needs_fw_update_dict)
 
     # Exit codes:
     # 0 = Mavericks is supported
     # 1 = Mavericks is not supported
-    return mavericks_supported
+    return mavericks_supported and mavericks_needs_fw_update
 
 
 if __name__ == '__main__':
