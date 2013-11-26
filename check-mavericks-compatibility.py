@@ -57,7 +57,7 @@ updateMunkiConditionalItems = False
 
 def logger(message, status, info):
     if verbose:
-        print "%10s: %-40s [%s]" % (message, status, info)
+        print "%14s: %-40s [%s]" % (message, status, info)
     pass
 
 
@@ -265,47 +265,63 @@ def append_conditional_items(dictionary):
     plistlib.writePlist(output_dict, current_conditional_items_path)
     pass
 
+
 def check_firmware_version():
     """docstring for check_firmware_version"""
-    cmd = ["ioreg", "-p", "IOService",
-            "-n", "IOAHCIDevice@0",
-            "-r",
-            "-l",
-            "-a"]
-    p1 = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (result, err) = p1.communicate()
-    ioregplist = plistlib.readPlistFromString(result)
-    for i in ioregplist:
-        for j in i.iteritems():
-            if 'IORegistryEntryChildren' in j:
-                for k in j[1]:
-                    for l in k.iteritems():
-                        if 'IORegistryEntryChildren' in l:
-                            for m in l[1]:
-                                if 'Device Characteristics' in m:
-                                    device = m['Device Characteristics']
-                                    return device.get('Product Name').rstrip(), device.get('Product Revision Level').rstrip()
-                                else:
-                                    return 1
+    cmd = ["/usr/sbin/ioreg", "-p", "IOService",
+           "-n", "AppleAHCIDiskDriver",
+           "-r",
+           "-l",
+           "-d", "1",
+           "-w", "0"]
+    p = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (results, err) = p.communicate()
+    disk_dict = {}
+    for line in results.splitlines():
+        m = re.match(r"^\s*\"(?P<key>.*)\" = \"(?P<value>.*)\"$", line)
+        if m:
+            disk_dict[m.group('key')] = m.group('value').strip()
+    model = disk_dict.get('Model', '')
+    revision = disk_dict.get('Revision', '')
+    return model, revision
+
+
+def hardware_model():
+    cmd = ["/usr/sbin/sysctl", "-n", "hw.model"]
+    p = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (results, err) = p.communicate()
+    return results.strip()
+
+
 def is_firmware_compatible():
     """docstring for needs_ssd_fw_update"""
     if is_virtual_machine():
         return True
+    if hardware_model() not in ['MacBookAir5,1', 'MacBookAir5,2']:
+        return True
+    
     revisions = ['TPSABBF0', 'TPVABBF0']
     models = ['TS064E', 'TS128E']
     
     model, revision = check_firmware_version()
     if any(mod in model for mod in models) and any(rev in revision for rev in revisions):
-        logger("SSD Firmware",
-               "Needs update",
-               "Yes")
+        logger("SSD Model",
+               model,
+               "OK")
+        logger("SSD Revision",
+               revision,
+               "Failed")
         return False
     else:
-        logger("SSD Firmware",
-               "Needs update",
-               "No")
+        logger("SSD Model",
+               model,
+               "OK")
+        logger("SSD Revision",
+               revision,
+               "OK")
         return True
-    
+
+
 def main(argv=None):
     mavericks_supported_dict = {}
     mavericks_needs_fw_update_dict = {}
