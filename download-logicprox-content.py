@@ -8,7 +8,7 @@
 # them in subdirectories the same way as displayed in the Logic Pro first run window.
 #
 # Example usage:
-#       $ ./download-logicprox-content.py "~/Downloads/Logic Pro Content"
+#       $ ./download-logicprox-content.py ~/Downloads/LogicProContent
 #
 # Hannes Juutilainen <hjuutilainen@mac.com>
 # https://github.com/hjuutilainen/adminscripts
@@ -163,7 +163,7 @@ def main(argv=None):
     # Parse arguments
     # ================
     parser = argparse.ArgumentParser()
-    parser.add_argument('output', type=str, help="Download location. For example '~/Downloads'", nargs=1)
+    parser.add_argument('output', type=str, help="Download location. For example ~/Downloads/LogicProContent", nargs=1)
     args = vars(parser.parse_args())
     
     global download_directory
