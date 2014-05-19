@@ -7,16 +7,17 @@
 # This script downloads the content packages for Logic Pro X. It also arranges
 # them in subdirectories the same way as displayed in the Logic Pro first run window.
 #
-# Example usage:
-#       $ ./download-logicprox-content.py ~/Downloads/LogicProContent
+# Logic Pro X Version: 10.0.7
+#
+# List package URLs:
+#       $ ./download-logicprox-content.py list
+#
+# Download packages:
+#       $ ./download-logicprox-content.py download -o ~/Downloads/LogicProContent
+#
 #
 # Hannes Juutilainen <hjuutilainen@mac.com>
 # https://github.com/hjuutilainen/adminscripts
-#
-# Version history:
-# ----------------
-# 2014-01-26, Hannes Juutilainen
-# - First version
 #
 # ================================================================================
 
@@ -30,7 +31,7 @@ import shutil
 import argparse
 
 base_url = "http://audiocontentdownload.apple.com/lp10_ms3_content_2013/"
-version = "1005"
+version = "1005" # Yes, this is for 10.0.7
 logicpro_plist_name = "logicpro%s_en.plist" % version
 
 
@@ -100,7 +101,7 @@ def process_package_download(download_url, save_path, download_size):
     pass
 
 
-def process_content_item(content_item, parent_items):
+def process_content_item(content_item, parent_items, list_only=False):
     """
     Extracts and processes information from a single Content item
     """
@@ -129,12 +130,12 @@ def process_content_item(content_item, parent_items):
     subcontent = content_item.get('SubContent', None)    
     if subcontent:
         for subcontent_item in subcontent:
-            process_content_item(subcontent_item, new_parent_items)
+            process_content_item(subcontent_item, new_parent_items, list_only)
     
     # We don't have any subcontent so get the package references and download
     else:
         package_name = content_item.get('Packages', None)
-        if not os.path.exists(relative_path):
+        if not os.path.exists(relative_path) and not list_only:
             #print "Creating dir %s" % relative_path
             os.makedirs(relative_path)
         
@@ -144,7 +145,10 @@ def process_content_item(content_item, parent_items):
             download_size = package_dict.get('DownloadSize', None)
             save_path = "".join([relative_path, '/', download_name])
             download_url = ''.join([base_url, download_name])
-            process_package_download(download_url, save_path, download_size)
+            if list_only:
+                print download_url
+            else:
+                process_package_download(download_url, save_path, download_size)
             
         
         if isinstance(package_name, list):
@@ -154,29 +158,42 @@ def process_content_item(content_item, parent_items):
                 download_size = package_dict.get('DownloadSize', None)
                 save_path = "".join([relative_path, '/', download_name])
                 download_url = ''.join([base_url, download_name])
-                process_package_download(download_url, save_path, download_size)
-        
-    
+                if list_only:
+                    print download_url
+                else:
+                    process_package_download(download_url, save_path, download_size)
+
 
 def main(argv=None):
     # ================
-    # Parse arguments
+    # Arguments
     # ================
-    parser = argparse.ArgumentParser()
-    parser.add_argument('output', type=str, help="Download location. For example ~/Downloads/LogicProContent", nargs=1)
-    args = vars(parser.parse_args())
     
-    global download_directory
-    if args['output']:
-        download_directory = os.path.abspath(args['output'][0])
-    else:
-        home = os.path.expanduser('~')
-        download_directory = os.path.join(home, 'Downloads')
+    # Create the top-level parser
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(title='subcommands', dest='subparser_name')
+    
+    # List
+    parser_install = subparsers.add_parser('list', help='List package URLs')
+    
+    # Download
+    parser_activate = subparsers.add_parser('download', help='Download packages')
+    parser_activate.add_argument('-o', '--output', nargs=1, required=True, help='Download location. For example ~/Downloads/LogicProContent')
+    
+    # Parse arguments
+    args = vars(parser.parse_args())
     
     # =================================================================
     # Download the property list which contains the package references
     # =================================================================
     logicpro_plist = download_logicpro_plist()
+    
+    global download_directory
+    if args.get('output', None):
+        download_directory = os.path.abspath(args['output'][0])
+    else:
+        home = os.path.expanduser('~')
+        download_directory = os.path.join(home, 'Downloads/LogicProContent')    
     
     # =====================================
     # Parse the property list for packages
@@ -185,7 +202,10 @@ def main(argv=None):
     packages = logicpro_plist['Packages']
     content = logicpro_plist['Content']
     for content_item in content:
-        process_content_item(content_item, None)
+        if args['subparser_name'] == 'list':
+            process_content_item(content_item, None, list_only=True)
+        else:
+            process_content_item(content_item, None, list_only=False)
     
     return 0
 
