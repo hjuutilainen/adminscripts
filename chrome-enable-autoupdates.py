@@ -12,6 +12,9 @@ Created by Hannes Juutilainen, hjuutilainen@mac.com
 History:
 --------
 
+2014-11-20, Hannes Juutilainen
+- Modifications for Chrome 39
+
 2012-08-31, Hannes Juutilainen
 - Added --force flag to keystoneInstall as suggested by Riley Shott
 
@@ -87,10 +90,10 @@ def keystoneRegistrationFrameworkPath():
     
 def keystoneInstall():
     """Install the current Keystone"""
-    installScript = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/install.py')
+    installScript = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/ksinstall')
     keystonePayload = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/Keystone.tbz')
     if os.path.exists(installScript) and os.path.exists(keystonePayload):
-        retcode = subprocess.call([installScript, '--install', keystonePayload, '--root', '/', '--force'])
+        retcode = subprocess.call([installScript, '--install', keystonePayload, '--force'])
         if retcode == 0:
             return True
         else:
