@@ -7,7 +7,7 @@
 # This script downloads the content packages for Logic Pro X. It also arranges
 # them in subdirectories the same way as displayed in the Logic Pro first run window.
 #
-# Logic Pro X Version: 10.0.7
+# Logic Pro X Version: 10.1.0
 #
 # List package URLs:
 #       $ ./download-logicprox-content.py list
@@ -29,10 +29,33 @@ import plistlib
 import urllib2
 import shutil
 import argparse
+import objc
 
-base_url = "http://audiocontentdownload.apple.com/lp10_ms3_content_2013/"
-version = "1005" # Yes, this is for 10.0.7
-logicpro_plist_name = "logicpro%s_en.plist" % version
+# Logic Pro X 10.1 update changed the remote plist file format to binary.
+# Since plistlib is not able to deal with binary property lists, we're
+# using FoundationPlist from Munki instead.
+if not os.path.exists('/usr/local/munki/munkilib'):
+    print >> sys.stderr, ("ERROR: munkilib not found")
+    sys.exit(1)
+else:
+    sys.path.append('/usr/local/munki/munkilib')
+    try:
+        from munkilib import FoundationPlist as plistlib
+    except ImportError:
+        try:
+            import FoundationPlist as plistlib
+        except ImportError:
+            # maybe we're not on an OS X machine...
+            print >> sys.stderr, ("ERROR: FoundationPlist is not available")
+            sys.exit(1)
+
+
+# Found by running the following:
+# $ strings "Logic Pro X" | egrep -A 50 ContentBaseURL | egrep 'plist|http'
+base_url = "http://audiocontentdownload.apple.com/lp10_ms3_content_2015/"
+base_url_2013 = "http://audiocontentdownload.apple.com/lp10_ms3_content_2013/"
+version = "1010"
+logicpro_plist_name = "logicpro%s.plist" % version
 
 
 def human_readable_size(bytes):
@@ -100,6 +123,20 @@ def process_package_download(download_url, save_path, download_size):
     
     pass
 
+def process_package_dict(package_dict):
+    """
+    Processes information from a single package dictionary.
+    Returns the download URL, file name and size
+    """
+    download_name = package_dict.get('DownloadName', None)
+    download_size = package_dict.get('DownloadSize', None)
+    if not download_name.startswith('../'):
+        download_url = ''.join([base_url, download_name])
+    else:
+        download_name = os.path.basename(download_name)
+        download_url = ''.join([base_url_2013, download_name])
+    return (download_url, download_name, download_size)
+
 
 def process_content_item(content_item, parent_items, list_only=False):
     """
@@ -139,28 +176,26 @@ def process_content_item(content_item, parent_items, list_only=False):
             #print "Creating dir %s" % relative_path
             os.makedirs(relative_path)
         
-        if isinstance(package_name, str):
+        # There can be only one package defined as a string
+        # or an array of packages
+        
+        if type(package_name) == objc.pyobjc_unicode:
             package_dict = packages.get(package_name, {})
-            download_name = package_dict.get('DownloadName', None)
-            download_size = package_dict.get('DownloadSize', None)
-            save_path = "".join([relative_path, '/', download_name])
-            download_url = ''.join([base_url, download_name])
+            (download_url, download_name, download_size) = process_package_dict(package_dict)
             if list_only:
                 print download_url
             else:
+                save_path = "".join([relative_path, '/', download_name])
                 process_package_download(download_url, save_path, download_size)
             
-        
-        if isinstance(package_name, list):
+        else:
             for i in package_name:
                 package_dict = packages.get(i, {})
-                download_name = package_dict.get('DownloadName', None)
-                download_size = package_dict.get('DownloadSize', None)
-                save_path = "".join([relative_path, '/', download_name])
-                download_url = ''.join([base_url, download_name])
+                (download_url, download_name, download_size) = process_package_dict(package_dict)
                 if list_only:
                     print download_url
                 else:
+                    save_path = "".join([relative_path, '/', download_name])
                     process_package_download(download_url, save_path, download_size)
 
 
@@ -200,7 +235,8 @@ def main(argv=None):
     # =====================================
     global packages
     packages = logicpro_plist['Packages']
-    content = logicpro_plist['Content']
+    content_dict = logicpro_plist['Content']
+    content = content_dict.get('en', [])
     for content_item in content:
         if args['subparser_name'] == 'list':
             process_content_item(content_item, None, list_only=True)
