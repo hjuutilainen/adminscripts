@@ -31,7 +31,7 @@ from Foundation import CFPreferencesCopyAppValue
 verbose = True
 # Set this to True if you want to add "virtual_machine" custom conditional to
 # /Library/Managed Installs/ConditionalItems.plist
-updateMunkiConditionalItems = True
+update_munki_conditional_items = True
 # ================================================================================
 # End configuration
 # ================================================================================
@@ -41,70 +41,72 @@ def logger(message, status, info):
         print "%10s: %-40s [%s]" % (message, status, info)
     pass
 
-def conditionalItemsPath():
+
+def conditional_items_path():
     # <http://code.google.com/p/munki/wiki/ConditionalItems>
     # Read the location of the ManagedInstallDir from ManagedInstall.plist
     BUNDLE_ID = 'ManagedInstalls'
     pref_name = 'ManagedInstallDir'
-    managedinstalldir = CFPreferencesCopyAppValue(pref_name, BUNDLE_ID)
+    managed_installs_dir = CFPreferencesCopyAppValue(pref_name, BUNDLE_ID)
     # Make sure we're outputting our information to "ConditionalItems.plist"
-    if managedinstalldir:
-        return os.path.join(managedinstalldir, 'ConditionalItems.plist')
+    if managed_installs_dir:
+        return os.path.join(managed_installs_dir, 'ConditionalItems.plist')
     else:
         # Munki default
         return "/Library/Managed Installs/ConditionalItems.plist"
 
 
-def munkiInstalled():
-    pkgutilProcess = [ "pkgutil", "--pkg-info", "com.googlecode.munki.core" ]
-    p = subprocess.Popen(pkgutilProcess, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+def munki_installed():
+    pkgutil_process = ["pkgutil", "--pkg-info", "com.googlecode.munki.core"]
+    p = subprocess.Popen(pkgutil_process, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output = p.communicate()[0]
     if p.returncode == 0:
         return True
     else:
         return False
 
-def isVirtualMachine():
-    sysctlProcess = [ "sysctl", "-n", "machdep.cpu.features" ]
-    p = subprocess.Popen(sysctlProcess, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+def is_virtual_machine():
+    sysctl_process = ["sysctl", "-n", "machdep.cpu.features"]
+    p = subprocess.Popen(sysctl_process, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (results, err) = p.communicate()
-    for aFeature in results.split():
-        if aFeature == "VMM":
+    for feature in results.split():
+        if feature == "VMM":
             return True
     return False
 
 
-
-def appendConditionalItems(aDict):
-    conditionalitemspath = conditionalItemsPath()
-    if os.path.exists(conditionalItemsPath()):
-        existing_dict = plistlib.readPlist(conditionalitemspath)
-        output_dict = dict(existing_dict.items() + aDict.items())
+def append_conditional_items(conditionals_dict):
+    conditionals_path = conditional_items_path()
+    if os.path.exists(conditionals_path):
+        existing_dict = plistlib.readPlist(conditionals_path)
+        output_dict = dict(existing_dict.items() + conditionals_dict.items())
     else:
-        output_dict = aDict
-    plistlib.writePlist(output_dict, conditionalitemspath)
+        output_dict = conditionals_dict
+    plistlib.writePlist(output_dict, conditionals_path)
     pass
 
-def main(argv=None):
-    newConditionalItemsDict = {}
 
-    if isVirtualMachine():
+def main(argv=None):
+    new_conditional_items = {}
+
+    if is_virtual_machine():
         print "This system is virtual"
-        machineType = 0
-        newConditionalItemsDict = { 'virtual_machine': True }
+        machine_type = 0
+        new_conditional_items = {'virtual_machine': True}
     else:
         print "This system is not virtual"
-        machineType = 1
-        newConditionalItemsDict = { 'virtual_machine': False }
+        machine_type = 1
+        new_conditional_items = {'virtual_machine': False}
 
     # Update "ConditionalItems.plist" if munki is installed
-    if ( munkiInstalled() and updateMunkiConditionalItems ):
-        appendConditionalItems(newConditionalItemsDict)
+    if munki_installed() and update_munki_conditional_items:
+        append_conditional_items(new_conditional_items)
 
     # Exit codes:
     # 0 = This machine is virtual
     # 1 = This machine is not virtual
-    return machineType
+    return machine_type
 
 
 if __name__ == '__main__':
