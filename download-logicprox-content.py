@@ -7,7 +7,7 @@
 # This script downloads the content packages for Logic Pro X. It also arranges
 # them in subdirectories the same way as displayed in the Logic Pro first run window.
 #
-# Logic Pro X Version: 10.1.0
+# Logic Pro X Version: 10.2.0
 #
 # List package URLs:
 #       $ ./download-logicprox-content.py list
