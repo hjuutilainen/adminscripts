@@ -50,11 +50,14 @@ else:
             sys.exit(1)
 
 
-# Found by running the following:
-# $ strings "Logic Pro X" | egrep -A 50 ContentBaseURL | egrep 'plist|http'
+# The URL and the plist file name can be found with the strings command. For example:
+#
+#     $ cd "/Applications/Logic Pro X.app/Contents/MacOS"
+#     $ strings "Logic Pro X" | egrep -B 100 -A 10 BasicContent2DownloadURL | egrep 'plist|http'
+#
 base_url = "http://audiocontentdownload.apple.com/lp10_ms3_content_2015/"
 base_url_2013 = "http://audiocontentdownload.apple.com/lp10_ms3_content_2013/"
-version = "1010"
+version = "1020"
 logicpro_plist_name = "logicpro%s.plist" % version
 
 
