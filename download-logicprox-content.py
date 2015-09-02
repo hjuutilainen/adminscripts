@@ -61,6 +61,8 @@ version = "1020"
 logicpro_plist_name = "logicpro%s.plist" % version
 
 
+download_urls_temp = {}
+
 def human_readable_size(bytes):
     """
     Converts bytes to human readable string
@@ -106,23 +108,16 @@ def download_logicpro_plist():
     return info_plist
 
 
-def process_package_download(download_url, save_path, download_size):
+def process_package_download(download_url, save_path, download_size, download_name):
     """
     Downloads the URL if it doesn't already exist 
     """
-    download_size_string = human_readable_size(download_size)
-    if os.path.exists(save_path):
-        # Check the local file size and download if it's smaller.
-        # TODO: Get a better way for this. The 'DownloadSize' key in logicpro_plist
-        # seems to be wrong for a number of packages.
-        if os.path.getsize(save_path) < download_size:
-            print "Remote file is larger. Downloading %s from %s" % (download_size_string, download_url)
-            download_package_as(download_url, save_path)
-        else:
-            print "Skipping already downloaded package %s" % download_url
+    global download_urls_temp
+    existing_item = download_urls_temp.get(download_url, None)
+    if existing_item:
+        existing_item["savepaths"].append(save_path)
     else:
-        print "Downloading %s from %s" % (download_size_string, download_url)
-        download_package_as(download_url, save_path)
+        download_urls_temp[download_url] = {"savepaths": [save_path], "download_name": download_name, "download_size": download_size}
     
     pass
 
@@ -185,21 +180,15 @@ def process_content_item(content_item, parent_items, list_only=False):
         if type(package_name) == objc.pyobjc_unicode:
             package_dict = packages.get(package_name, {})
             (download_url, download_name, download_size) = process_package_dict(package_dict)
-            if list_only:
-                print download_url
-            else:
-                save_path = "".join([relative_path, '/', download_name])
-                process_package_download(download_url, save_path, download_size)
+            save_path = "".join([relative_path, '/', download_name])
+            process_package_download(download_url, save_path, download_size, download_name)
             
         else:
             for i in package_name:
                 package_dict = packages.get(i, {})
                 (download_url, download_name, download_size) = process_package_dict(package_dict)
-                if list_only:
-                    print download_url
-                else:
-                    save_path = "".join([relative_path, '/', download_name])
-                    process_package_download(download_url, save_path, download_size)
+                save_path = "".join([relative_path, '/', download_name])
+                process_package_download(download_url, save_path, download_size, download_name)
 
 
 def main(argv=None):
@@ -245,6 +234,40 @@ def main(argv=None):
             process_content_item(content_item, None, list_only=True)
         else:
             process_content_item(content_item, None, list_only=False)
+    
+    # ======================================
+    # Download and link the items
+    # ======================================
+    temp_download_dir = os.path.join(download_directory, "__Downloaded Items")
+    if not os.path.exists(temp_download_dir) and not args['subparser_name'] == 'list':
+        os.makedirs(temp_download_dir)
+    for key in sorted(download_urls_temp):
+        value = download_urls_temp[key]
+        download_url = key
+        if args['subparser_name'] == 'list':
+            print download_url
+            continue
+        save_path = os.path.join(temp_download_dir, value["download_name"])
+        download_size = value.get("download_size", 0)
+        download_size_string = human_readable_size(download_size)
+        if os.path.exists(save_path):
+            # Check the local file size and download if it's smaller.
+            # TODO: Get a better way for this. The 'DownloadSize' key in logicpro_plist
+            # seems to be wrong for a number of packages.
+            if os.path.getsize(save_path) < download_size:
+                print "Remote file is larger. Downloading %s from %s" % (download_size_string, download_url)
+                download_package_as(download_url, save_path)
+            else:
+                print "Skipping already downloaded package %s" % download_url
+        else:
+            print "Downloading %s" % (download_url)
+            download_package_as(download_url, save_path)
+        
+        for item in value["savepaths"]:
+            if os.path.exists(item):
+                os.unlink(item)
+            os.link(save_path, item)
+            print "---> Linked %s" % item
     
     return 0
 
