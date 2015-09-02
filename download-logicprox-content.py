@@ -83,7 +83,7 @@ def download_package_as(url, output_file):
         req = urllib2.urlopen(url)
         with open(output_file, 'wb') as fp:
             shutil.copyfileobj(req, fp)
-    except HTTPError, e:
+    except urllib2.HTTPError as e:
         print "HTTP Error:", e.code, url
     
     return True
@@ -99,8 +99,8 @@ def download_logicpro_plist():
         f = urllib2.urlopen(plist_url)
         plist_data = f.read()
         f.close()
-    except BaseException as e:
-        raise ProcessorError("Can't download %s: %s" % (base_url, e))
+    except urllib2.HTTPError as e:
+        print "HTTP Error:", e.code, url
 
     info_plist = plistlib.readPlistFromString(plist_data)
     return info_plist
