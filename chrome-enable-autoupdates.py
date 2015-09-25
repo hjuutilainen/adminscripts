@@ -12,6 +12,9 @@ Created by Hannes Juutilainen, hjuutilainen@mac.com
 History:
 --------
 
+2015-09-25, Niklas Blomdalen
+- Modifications to include old KeystoneRegistration installation (python version)
+
 2014-11-20, Hannes Juutilainen
 - Modifications for Chrome 39
 
@@ -91,6 +94,8 @@ def keystoneRegistrationFrameworkPath():
 def keystoneInstall():
     """Install the current Keystone"""
     installScript = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/ksinstall')
+    if not os.path.exists(installScript):
+    	installScript = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/install.py')
     keystonePayload = os.path.join(keystoneRegistrationFrameworkPath(), 'Resources/Keystone.tbz')
     if os.path.exists(installScript) and os.path.exists(keystonePayload):
         retcode = subprocess.call([installScript, '--install', keystonePayload, '--force'])
