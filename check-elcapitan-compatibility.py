@@ -39,11 +39,11 @@ from Foundation import CFPreferencesCopyAppValue
 # ================================================================================
 
 # Set this to False if you don't want any output, just the exit codes
-verbose = False
+verbose = True
 
 # Set this to True if you want to add "elcapitan_supported" custom conditional to
 # /Library/Managed Installs/ConditionalItems.plist
-update_munki_conditional_items = True
+update_munki_conditional_items = False
 
 # ================================================================================
 # End configuration
