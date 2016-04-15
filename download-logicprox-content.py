@@ -55,9 +55,9 @@ else:
 #     $ cd "/Applications/Logic Pro X.app/Contents/MacOS"
 #     $ strings "Logic Pro X" | egrep -B 100 -A 10 BasicContent2DownloadURL | egrep 'plist|http'
 #
-base_url = "http://audiocontentdownload.apple.com/lp10_ms3_content_2015/"
+base_url = "http://audiocontentdownload.apple.com/lp10_ms3_content_2016/"
 base_url_2013 = "http://audiocontentdownload.apple.com/lp10_ms3_content_2013/"
-version = "1020"
+version = "1022"
 logicpro_plist_name = "logicpro%s.plist" % version
 
 
