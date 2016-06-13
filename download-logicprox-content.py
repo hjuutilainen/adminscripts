@@ -203,6 +203,9 @@ def main(argv=None):
     # List
     parser_install = subparsers.add_parser('list', help='List package URLs')
     
+    # Raw
+    parser_install = subparsers.add_parser('raw', help='Print the full update property list')
+    
     # Download
     parser_activate = subparsers.add_parser('download', help='Download packages')
     parser_activate.add_argument('-o', '--output', nargs=1, required=True, help='Download location. For example ~/Downloads/LogicProContent')
@@ -214,6 +217,11 @@ def main(argv=None):
     # Download the property list which contains the package references
     # =================================================================
     logicpro_plist = download_logicpro_plist()
+    
+    # Raw requested, just print the property list and exit
+    if args['subparser_name'] == 'raw':
+        print logicpro_plist
+        return 0
     
     global download_directory
     if args.get('output', None):
@@ -248,13 +256,27 @@ def main(argv=None):
             print download_url
             continue
         save_path = os.path.join(temp_download_dir, value["download_name"])
+        
+        # Since Logic Pro X 10.2.3, the download size can be either an integer
+        # or a string ("123.456.789"). The following is only an assumption
+        # how to parse the latter...
         download_size = value.get("download_size", 0)
-        download_size_string = human_readable_size(download_size)
+        download_size_int = 0
+        if type(download_size) == objc.pyobjc_unicode:
+            # Strip anything that isn't a digit
+            download_size_string = re.sub(r"\D", "", download_size)
+            download_size_int = int(download_size_string)
+        else:
+            download_size_int = int(download_size)
+        
+        # Now convert the bytes to a human readable string
+        download_size_string = human_readable_size(download_size_int)
+        
         if os.path.exists(save_path):
             # Check the local file size and download if it's smaller.
             # TODO: Get a better way for this. The 'DownloadSize' key in logicpro_plist
             # seems to be wrong for a number of packages.
-            if os.path.getsize(save_path) < download_size:
+            if os.path.getsize(save_path) < download_size_int:
                 print "Remote file is larger. Downloading %s from %s" % (download_size_string, download_url)
                 download_package_as(download_url, save_path)
             else:
