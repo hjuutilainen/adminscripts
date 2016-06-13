@@ -53,11 +53,11 @@ else:
 # The URL and the plist file name can be found with the strings command. For example:
 #
 #     $ cd "/Applications/Logic Pro X.app/Contents/MacOS"
-#     $ strings "Logic Pro X" | egrep -B 100 -A 10 BasicContent2DownloadURL | egrep 'plist|http'
+#     $ strings "Logic Pro X" | egrep -B 100 -A 10 ContentBaseURL | egrep 'plist|http'
 #
 base_url = "http://audiocontentdownload.apple.com/lp10_ms3_content_2016/"
 base_url_2013 = "http://audiocontentdownload.apple.com/lp10_ms3_content_2013/"
-version = "1022"
+version = "1023"
 logicpro_plist_name = "logicpro%s.plist" % version
 
 
