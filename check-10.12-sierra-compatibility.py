@@ -167,7 +167,7 @@ def is_supported_model():
         'MacPro1,1',
         'MacPro2,1',
         'MacPro3,1',
-        'MacPro4,1'
+        'MacPro4,1',
         'Xserve1,1',
         'Xserve2,1',
         'Xserve3,1']
