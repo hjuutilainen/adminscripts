@@ -57,7 +57,7 @@ else:
 #
 base_url = "http://audiocontentdownload.apple.com/lp10_ms3_content_2016/"
 base_url_2013 = "http://audiocontentdownload.apple.com/lp10_ms3_content_2013/"
-version = "1023"
+version = "1030"
 logicpro_plist_name = "logicpro%s.plist" % version
 
 
