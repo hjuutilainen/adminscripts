@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ======================================
-# reposado-addNewProducts.sh
+# reposado-add-new-products.sh
 #
 # Script to add new products to a branch
 # ======================================
@@ -24,13 +24,13 @@ fi
 echo "Getting a list of new products..."
 IFS="
 "
-newProductsFull=(`$REPOUTIL --products | grep -e " \[\] \$"`)
-if [[ ${#newProductsFull[@]} -eq 0 ]]; then
+NEW_PRODUCTS=( $("${REPOUTIL}" --products | grep -e " \[\] \$") )
+if [[ ${#NEW_PRODUCTS[@]} -eq 0 ]]; then
 	echo "No new products"
 	exit 0
 fi
-for (( i=0; i<${#newProductsFull[@]}; i++ )); do
-	echo ${newProductsFull[$i]}
+for (( i=0; i<${#NEW_PRODUCTS[@]}; i++ )); do
+	echo ${NEW_PRODUCTS[$i]}
 done
 unset IFS
 echo ""
@@ -44,10 +44,10 @@ while true; do
 	fi
     case $yn in
         [Yy]* ) 
-	    newProducts=( `$REPOUTIL --products | grep -e " \[\] \$" | awk '{print $1}'`)
+	    NEW_PRODUCT_IDS=( $("${REPOUTIL}" --products | grep -e " \[\] \$" | awk '{print $1}') )
 	    while [ "$1" != "" ]; do
-			echo "$REPOUTIL --add-products ${newProducts[@]} $1"
-			$REPOUTIL --add-products ${newProducts[@]} $1
+			echo "$REPOUTIL --add-products ${NEW_PRODUCT_IDS[@]} $1"
+			#"${REPOUTIL}" --add-products ${NEW_PRODUCT_IDS[@]} $1
 			echo ""
 			shift
 	    done

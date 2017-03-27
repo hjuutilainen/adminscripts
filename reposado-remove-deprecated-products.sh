@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==================================================
-# reposado-removeDeprecatedProducts.sh
+# reposado-remove-deprecated-products.sh
 #
 # Script to remove deprecated products from a branch
 # ==================================================
@@ -24,13 +24,13 @@ fi
 echo "Getting a list of deprecated products..."
 IFS="
 "
-deprecatedProductsFull=(`$REPOUTIL --list-branch=${1} | grep Deprecated`)
-if [[ ${#deprecatedProductsFull[@]} -eq 0 ]]; then
+DEPRECATED_PRODUCTS=( $("${REPOUTIL}" --list-branch=${1} | grep Deprecated) )
+if [[ ${#DEPRECATED_PRODUCTS[@]} -eq 0 ]]; then
 	echo "No deprecated products"
 	exit 0
 fi
-for (( i=0; i<${#deprecatedProductsFull[@]}; i++ )); do
-	echo ${deprecatedProductsFull[$i]}
+for (( i=0; i<${#DEPRECATED_PRODUCTS[@]}; i++ )); do
+	echo ${DEPRECATED_PRODUCTS[$i]}
 done
 unset IFS
 echo ""
@@ -40,9 +40,9 @@ while true; do
     read -p "Remove products from catalog $1? [y]n: " yn
     case $yn in
         [Yy]* ) 
-	    deprecatedProductIDs=( `$REPOUTIL --list-branch=${1} | grep Deprecated | awk '{print $1}'`)
-	    echo "$REPOUTIL --remove-product ${deprecatedProductIDs[@]} $1"
-	    $REPOUTIL --remove-product ${deprecatedProductIDs[@]} $1
+	    DEPRECATED_PRODUCT_IDS=( $("${REPOUTIL}" --list-branch=${1} | grep Deprecated | awk '{print $1}') )
+	    echo "${REPOUTIL} --remove-product ${DEPRECATED_PRODUCT_IDS[@]} $1"
+	    #"${REPOUTIL}" --remove-product ${DEPRECATED_PRODUCT_IDS[@]} $1
 	    break;;
         [Nn]* )
 	    exit;;
