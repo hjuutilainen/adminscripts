@@ -31,6 +31,7 @@ dmg_format = 'UDZO'  # UDIF zlib-compressed
 dmg_uid = '99'  # Who ever is mounting
 dmg_gid = '99'  # Who ever is mounting
 dmg_mode = '555'  # Read-only
+dmg_fs = 'Journaled HFS+' # Filesystem
 
 # ===================================================
 # Globals
@@ -79,6 +80,7 @@ def create_disk_image():
                        'create',
                        '-srcFolder', temp_dir,
                        '-format', dmg_format,
+                       '-fs', dmg_fs,
                        '-volname', hdiutil_volume_name,
                        '-uid', dmg_uid,
                        '-gid', dmg_gid,
