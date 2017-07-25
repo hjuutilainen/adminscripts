@@ -31,7 +31,7 @@ dmg_format = 'UDZO'  # UDIF zlib-compressed
 dmg_uid = '99'  # Who ever is mounting
 dmg_gid = '99'  # Who ever is mounting
 dmg_mode = '555'  # Read-only
-dmg_fs = 'Journaled HFS+' # Filesystem
+dmg_fs = 'HFS+' # Filesystem
 
 # ===================================================
 # Globals
