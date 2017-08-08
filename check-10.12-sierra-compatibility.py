@@ -12,7 +12,7 @@
 # The checks done by this script are (in order):
 # - Machine is a virtual machine or has a specific supported board-id
 # - Machine model is not in a list of unsupported models
-# - Current system version is less than 10.12 and at least 10.7
+# - Current system version is less than 10.12 and at least 10.7.5
 #
 # Exit codes:
 # 0 = Sierra is supported
@@ -95,7 +95,7 @@ def is_system_version_supported():
                "%s %s" % (product_name, product_version),
                "Failed")
         return False
-    elif StrictVersion(product_version) >= StrictVersion('10.7'):
+    elif StrictVersion(product_version) >= StrictVersion('10.7.5'):
         logger("System",
                "%s %s" % (product_name, product_version),
                "OK")
