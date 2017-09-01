@@ -19,16 +19,15 @@ import sys
 import os
 import getopt
 import subprocess
-import plistlib
 
 # =========================================
 # Set this to 'True'
 # to automatically remove the whole Keystone
 # =========================================
-removeKeystone = False
+remove_keystone = False
 
-googleSoftwareUpdate = "/Library/Google/GoogleSoftwareUpdate/GoogleSoftwareUpdate.bundle"
-chromeBundleID = "com.google.Chrome"
+google_software_update_bundle = "/Library/Google/GoogleSoftwareUpdate/GoogleSoftwareUpdate.bundle"
+chrome_bundle_id = "com.google.Chrome"
 
 
 class Usage(Exception):
@@ -36,21 +35,33 @@ class Usage(Exception):
         self.msg = msg
 
 
-def keystoneIsInstalled():
+def keystone_installed():
     """Check if Keystone is installed"""
-    if os.path.exists(googleSoftwareUpdate):
+    if os.path.exists(google_software_update_bundle):
         return True
     else:
         return False
 
 
-def keystoneNuke():
+def keystone_nuke():
     """Nuke the installed Keystone"""
-    agentPath = os.path.join(googleSoftwareUpdate, "Contents/Resources/GoogleSoftwareUpdateAgent.app/Contents/Resources")
-    installScript = os.path.join(agentPath, "install.py")
-    if os.path.exists(installScript):
-        retcode = subprocess.call([installScript, "--nuke"])
-        if retcode == 0:
+    agent_path = os.path.join(
+        google_software_update_bundle,
+        "Contents/Resources/GoogleSoftwareUpdateAgent.app/Contents/Resources"
+    )
+    install_script = os.path.join(agent_path, "install.py")
+    if os.path.exists(install_script):
+        p = subprocess.Popen(
+            [install_script, "--nuke"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        (results, error) = p.communicate()
+        if error:
+            print >> sys.stderr, "%s" % error
+        if results:
+            print results
+        if p.returncode == 0:
             return True
         else:
             return False
@@ -59,23 +70,38 @@ def keystoneNuke():
         return False
 
 
-def removeChromeFromKeystone():
+def remove_chrome_from_keystone():
     """Removes Chrome from Keystone. Only return False if ksadmin fails."""
-    ksadmin = os.path.join(googleSoftwareUpdate, "Contents/MacOS/ksadmin")
+    ksadmin = os.path.join(google_software_update_bundle, "Contents/MacOS/ksadmin")
     if os.path.exists(ksadmin):
-        ksadminProcess = [  ksadmin, '--delete', '--productid',  chromeBundleID]
-        retcode = subprocess.call(ksadminProcess)
-        if retcode != 0:
-            print >> sys.stderr, "Warning: ksadmin exited with code %i" % retcode
-        else:
+        ksadmin_process = [
+            ksadmin,
+            '--delete',
+            '--productid',
+            chrome_bundle_id
+        ]
+        p = subprocess.Popen(
+            ksadmin_process,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        (results, error) = p.communicate()
+        if error:
+            print >> sys.stderr, "%s" % error
+        if results:
+            print results
+        if p.returncode == 0:
             print "Removed Chrome from Keystone"
+        else:
+            print >> sys.stderr, "Warning: ksadmin exited with code %i" % p.returncode
+
     else:
         print >> sys.stderr, "Warning: %s not found" % ksadmin
         if not os.path.exists("/Library/Google/GoogleSoftwareUpdate/TicketStore/"):
             print >> sys.stderr, "Warning: No ticket store either."
 
 
-def printUsage():
+def print_usage():
     print "Options: "
     print "  [ -c | --chromeonly   ]      Only remove Chrome ticket (default)"
     print "  [ -k | --keystoneNuke ]      Remove the whole Keystone"
@@ -87,20 +113,20 @@ def main(argv=None):
         argv = sys.argv
     try:
         try:
-            longArgs = ["help", "keystoneNuke", "chromeonly"]
-            opts, args = getopt.getopt(argv[1:], "hkc", longArgs)
+            long_args = ["help", "keystoneNuke", "chromeonly"]
+            opts, args = getopt.getopt(argv[1:], "hkc", long_args)
         except getopt.error, msg:
-            printUsage()
+            print_usage()
             return 1
         
-        global removeKeystone
+        global remove_keystone
         for option, value in opts:
             if option in ("-c", "--chromeonly"):
-                removeKeystone = False
+                remove_keystone = False
             if option in ("-k", "--keystoneNuke"):
-                removeKeystone = True
+                remove_keystone = True
             if option in ("-h", "--help"):
-                printUsage()
+                print_usage()
                 return 1
         
         # Check for root
@@ -109,19 +135,19 @@ def main(argv=None):
             return 1
         
         # Check if Keystone is actually installed
-        if not keystoneIsInstalled():
+        if not keystone_installed():
             print "Nothing to do. Keystone is not installed on this computer"
             return 0
         
-        if removeKeystone:
-            if keystoneNuke():
+        if remove_keystone:
+            if keystone_nuke():
                 print "Keystone removed"
                 return 0
             else:
                 print >> sys.stderr, "Error: Keystone nuke failed"
                 return 0
         else:
-            removeChromeFromKeystone()
+            remove_chrome_from_keystone()
             return 0
     
     except Usage, err:
