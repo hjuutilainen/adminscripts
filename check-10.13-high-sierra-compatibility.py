@@ -45,7 +45,7 @@ verbose = True
 
 # Set this to True if you want to add "high_sierra_supported" custom conditional to
 # /Library/Managed Installs/ConditionalItems.plist
-update_munki_conditional_items = False
+update_munki_conditional_items = True
 
 # ================================================================================
 # End configuration
@@ -84,7 +84,7 @@ def munki_installed():
 
 
 def run_script():
-    cmd = ["/bin/sh", "High_Sierra_Compatibility_Checker.sh"]
+    cmd = ["/bin/sh", "/usr/local/munki/conditions/High_Sierra_Compatibility_Checker.sh"]
     p = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (results, err) = p.communicate()
     for result in results.split():
@@ -118,7 +118,6 @@ def main(argv=None):
     # Update "ConditionalItems.plist" if munki is installed
     if munki_installed() and update_munki_conditional_items:
         append_conditional_items(high_sierra_supported_dict)
-
     # Exit codes:
     # 0 = High Sierra is supported
     # 1 = High Sierra is not supported
