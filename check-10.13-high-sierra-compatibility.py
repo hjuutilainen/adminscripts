@@ -35,8 +35,6 @@ import os
 import re
 import plistlib
 from distutils.version import StrictVersion
-from Foundation import CFPreferencesCopyAppValue
-
 
 # ================================================================================
 # Start configuration
