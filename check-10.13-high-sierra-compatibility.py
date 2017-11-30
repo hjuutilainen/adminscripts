@@ -95,20 +95,16 @@ def run_script():
 
     if (majorVersion >= 8 and minorVersion < 13) or (majorVersion == 7 and minorVersion == 5):
         ramCmd = ['/usr/sbin/sysctl', '-n', 'hw.memsize']
-        ram = int(subprocess.run(ramCmd, stdout=subprocess.PIPE).stdout.decode('ascii')) / 1024 / 1024 / 1024
+        ram = int(subprocess.check_output(ramCmd).decode('ascii')) / 1024 / 1024 / 1024
 
         minimumRam = 2
         minimumSpace = 9
 
-        freeSpaceCmd = [
-            '/usr/sbin/diskutil info / | awk -F\'[()]\' \'/Free Space|Available Space/ {print $2}\'| sed -e \'s/\ Bytes//\'']
-        freeSpace = int(int(subprocess.run(freeSpaceCmd, stdout=subprocess.PIPE, shell=True).stdout.decode(
-            'ascii')) / 1024 / 1024 / 1024)
+        freeSpaceCmd = ['/usr/sbin/diskutil info / | awk -F\'[()]\' \'/Free Space|Available Space/ {print $2}\'| sed -e \'s/\ Bytes//\'']
+        freeSpace = int(int(subprocess.check_output(freeSpaceCmd, shell=True).decode('ascii')) / 1024 / 1024 / 1024)
 
         modelIdentifierCmd = ['/usr/sbin/sysctl -n hw.model']
-        modelIdentifier = str(
-            subprocess.run(modelIdentifierCmd, stdout=subprocess.PIPE, shell=True).stdout.decode('ascii')).replace('\n',
-                                                                                                                   '')
+        modelIdentifier = str(subprocess.check_output(modelIdentifierCmd, shell=True).decode('ascii')).replace('\n','')
         modelnameCmd = 'echo \"' + modelIdentifier + '\" | sed s/[^0-9,]//g | awk -F, \'{print $1}\''
         modelname = re.sub(r'[0-9,]', '', modelIdentifier)
         modelVersion = int(re.sub(r',.*', '', re.sub(r'[^0-9,]', '', modelIdentifier)))
@@ -137,6 +133,7 @@ def append_conditional_items(dictionary):
     else:
         output_dict = dictionary
     plistlib.writePlist(output_dict, current_conditional_items_path)
+    pass
 
 
 def main(argv=None):
