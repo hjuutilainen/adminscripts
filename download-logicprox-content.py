@@ -7,7 +7,7 @@
 # This script downloads the content packages for Logic Pro X. It also arranges
 # them in subdirectories the same way as displayed in the Logic Pro first run window.
 #
-# Logic Pro X Version: 10.2.0
+# Logic Pro X Version: 10.3.2
 #
 # List package URLs:
 #       $ ./download-logicprox-content.py list
@@ -57,7 +57,7 @@ else:
 #
 base_url = "http://audiocontentdownload.apple.com/lp10_ms3_content_2016/"
 base_url_2013 = "http://audiocontentdownload.apple.com/lp10_ms3_content_2013/"
-version = "1030"
+version = "1032"
 logicpro_plist_name = "logicpro%s.plist" % version
 
 
