@@ -11,7 +11,7 @@
 # The checks done by this script are (in order):
 # - Machine is a virtual machine or has a specific supported board-id
 # - Machine model is not in a list of unsupported models
-# - Current system version is less than 10.12 and at least 10.7.5
+# - Current system version is less than 10.13 and at least 10.7.5
 #
 # Exit codes:
 # 0 = High Sierra is supported
@@ -42,7 +42,7 @@ import sys
 
 # Set this to False if you don't want any output, just the exit codes
 
-verbose = True
+verbose = False
 
 # Set this to True if you want to add "high_sierra_supported" custom conditional to
 # /Library/Managed Installs/ConditionalItems.plist
