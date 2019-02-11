@@ -283,6 +283,7 @@ def is_supported_board_id():
         'Mac-66E35819EE2D0D05',
         'Mac-A369DDC4E67F1C45',
         'Mac-E43C1C25D4880AD6',
+        'Mac-7BA5B2DFE22DDD8C', #Macmini8,1  https://browser.geekbench.com/v4/cpu/10604798
         ]
     board_id = get_board_id()
     if board_id in platform_support_values:
