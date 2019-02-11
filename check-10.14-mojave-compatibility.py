@@ -98,8 +98,8 @@ def is_system_version_supported():
     if StrictVersion(product_version) >= StrictVersion('10.14'):
         logger("System",
                "%s %s" % (product_name, product_version),
-               "Failed")
-        return False
+               "OK")
+        return True
     elif StrictVersion(product_version) >= StrictVersion('10.8'):
         logger("System",
                "%s %s" % (product_name, product_version),
