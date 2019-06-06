@@ -2,26 +2,37 @@
 # encoding: utf-8
 """
 chrome-enable-autoupdates.py
+
 This script enables system wide automatic updates for Google Chrome.
 It should work for Chrome versions 18 and later. No configuration needed
 as this is originally intended as a munki postinstall script.
+
 Created by Hannes Juutilainen, hjuutilainen@mac.com
+
 History:
 --------
+
 2017-09-01, Hannes Juutilainen
 - Ignore errors when installing keystone
+
 2015-09-25, Niklas Blomdalen
 - Modifications to include old KeystoneRegistration installation (python version)
+
 2014-11-20, Hannes Juutilainen
 - Modifications for Chrome 39
+
 2012-08-31, Hannes Juutilainen
 - Added --force flag to keystone install as suggested by Riley Shott
+
 2012-05-29, Hannes Juutilainen
 - Added more error checking
+
 2012-05-25, Hannes Juutilainen
 - Added some error checking in main
+
 2012-05-24, Hannes Juutilainen
 - First version
+
 """
 
 import sys
