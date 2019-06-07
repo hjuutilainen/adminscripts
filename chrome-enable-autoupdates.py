@@ -39,6 +39,7 @@ import sys
 import os
 import subprocess
 import plistlib
+from distutils.version import LooseVersion
 
 chrome_path = "/Applications/Google Chrome.app"
 info_plist_path = os.path.realpath(os.path.join(chrome_path, 'Contents/Info.plist'))
@@ -86,7 +87,7 @@ def chrome_product_id():
 
 def keystone_registration_framework_path():
     """Returns KeystoneRegistration.framework path"""
-    if int(chrome_version().split(".", 1)[0]) >= int(75):
+    if LooseVersion(chrome_version()) >= LooseVersion("75"):
         keystone_registration = os.path.join(chrome_path, 'Contents/Frameworks/')
         keystone_registration = os.path.join(keystone_registration, 'Google Chrome Framework.framework/Versions')
         keystone_registration = os.path.join(keystone_registration, chrome_version())
