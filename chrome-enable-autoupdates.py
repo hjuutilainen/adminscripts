@@ -39,6 +39,7 @@ import sys
 import os
 import subprocess
 import plistlib
+import time
 
 chrome_path = "/Applications/Google Chrome.app"
 info_plist_path = os.path.realpath(os.path.join(chrome_path, 'Contents/Info.plist'))
@@ -86,10 +87,16 @@ def chrome_product_id():
 
 def keystone_registration_framework_path():
     """Returns KeystoneRegistration.framework path"""
-    keystone_registration = os.path.join(chrome_path, 'Contents/Frameworks/')
-    keystone_registration = os.path.join(keystone_registration, 'Google Chrome Framework.framework/Versions')
-    keystone_registration = os.path.join(keystone_registration, chrome_version())
-    keystone_registration = os.path.join(keystone_registration, 'Frameworks/KeystoneRegistration.framework')
+    if int(chrome_version().split(".", 1)[0]) >= int(75):
+        keystone_registration = os.path.join(chrome_path, 'Contents/Frameworks/')
+        keystone_registration = os.path.join(keystone_registration, 'Google Chrome Framework.framework/Versions')
+        keystone_registration = os.path.join(keystone_registration, chrome_version())
+        keystone_registration = os.path.join(keystone_registration, 'Frameworks/KeystoneRegistration.framework')
+    else:
+        keystone_registration = os.path.join(chrome_path, 'Contents/Versions')
+        keystone_registration = os.path.join(keystone_registration, chrome_version())
+        keystone_registration = os.path.join(keystone_registration, 'Google Chrome Framework.framework')
+        keystone_registration = os.path.join(keystone_registration, 'Frameworks/KeystoneRegistration.framework')
     return keystone_registration
 
 
