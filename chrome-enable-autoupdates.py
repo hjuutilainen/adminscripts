@@ -39,7 +39,6 @@ import sys
 import os
 import subprocess
 import plistlib
-import time
 
 chrome_path = "/Applications/Google Chrome.app"
 info_plist_path = os.path.realpath(os.path.join(chrome_path, 'Contents/Info.plist'))
