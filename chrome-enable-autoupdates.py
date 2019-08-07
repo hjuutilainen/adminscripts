@@ -11,6 +11,8 @@ Created by Hannes Juutilainen, hjuutilainen@mac.com
 
 History:
 --------
+2019-08-05, Andy Duss
+- Fix keystone_registration_framework_path to point to correct directory
 
 2017-09-01, Hannes Juutilainen
 - Ignore errors when installing keystone
@@ -87,7 +89,12 @@ def chrome_product_id():
 
 def keystone_registration_framework_path():
     """Returns KeystoneRegistration.framework path"""
-    if LooseVersion(chrome_version()) >= LooseVersion("75"):
+    if LooseVersion(chrome_version()) >= LooseVersion("76"):
+        keystone_registration = os.path.join(chrome_path, 'Contents', 'Frameworks')
+        keystone_registration = os.path.join(keystone_registration, 'Google Chrome Framework.framework')
+        keystone_registration = os.path.join(keystone_registration, 'Frameworks', 'KeystoneRegistration.framework')
+        keystone_registration = os.path.join(keystone_registration, 'Versions', 'Current')
+    elif LooseVersion(chrome_version()) >= LooseVersion("75") and LooseVersion(chrome_version()) < LooseVersion("76"):
         keystone_registration = os.path.join(chrome_path, 'Contents/Frameworks/')
         keystone_registration = os.path.join(keystone_registration, 'Google Chrome Framework.framework/Versions')
         keystone_registration = os.path.join(keystone_registration, chrome_version())
