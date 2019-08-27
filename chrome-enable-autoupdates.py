@@ -2,39 +2,28 @@
 # encoding: utf-8
 """
 chrome-enable-autoupdates.py
-
 This script enables system wide automatic updates for Google Chrome.
 It should work for Chrome versions 18 and later. No configuration needed
 as this is originally intended as a munki postinstall script.
-
 Created by Hannes Juutilainen, hjuutilainen@mac.com
-
 History:
 --------
 2019-08-05, Andy Duss
 - Fix keystone_registration_framework_path to point to correct directory
-
 2017-09-01, Hannes Juutilainen
 - Ignore errors when installing keystone
-
 2015-09-25, Niklas Blomdalen
 - Modifications to include old KeystoneRegistration installation (python version)
-
 2014-11-20, Hannes Juutilainen
 - Modifications for Chrome 39
-
 2012-08-31, Hannes Juutilainen
 - Added --force flag to keystone install as suggested by Riley Shott
-
 2012-05-29, Hannes Juutilainen
 - Added more error checking
-
 2012-05-25, Hannes Juutilainen
 - Added some error checking in main
-
 2012-05-24, Hannes Juutilainen
 - First version
-
 """
 
 import sys
@@ -122,7 +111,7 @@ def keystone_install():
         p = subprocess.Popen(ksinstall_process, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (results, error) = p.communicate()
         if results:
-            print results
+            print(results)
         if p.returncode != 0:
             if error:
                 print >> sys.stderr, "%s" % error
@@ -158,7 +147,7 @@ def register_chrome_with_keystone():
         if error:
             print >> sys.stderr, "%s" % error
         if results:
-            print results
+            print(results)
         if p.returncode == 0:
             return True
         else:
@@ -181,18 +170,18 @@ def main(argv=None):
             print >> sys.stderr, "Error: Chrome is not installed on this computer"
             return 1
         if keystone_install():
-            print "Keystone installed"
+            print("Keystone installed")
         else:
             print >> sys.stderr, "Error: Keystone install failed"
             return 1
         if register_chrome_with_keystone():
-            print "Registered Chrome with Keystone"
+            print("Registered Chrome with Keystone")
             return 0
         else:
             print >> sys.stderr, "Error: Failed to register Chrome with Keystone"
             return 1
 
-    except Usage, err:
+    except Usage as err:
         print >> sys.stderr, err.msg
         print >> sys.stderr, "for help use --help"
         return 2
