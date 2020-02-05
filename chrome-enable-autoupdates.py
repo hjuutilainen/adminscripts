@@ -110,6 +110,8 @@ def keystone_registration_framework_path():
 def keystone_install():
     """Install the current Keystone"""
     install_script = os.path.join(keystone_registration_framework_path(), 'Resources/ksinstall')
+    if LooseVersion(chrome_version()) >= LooseVersion("80"):
+        install_script = os.path.join(keystone_registration_framework_path(), 'Helpers/ksinstall')
     if not os.path.exists(install_script):
         install_script = os.path.join(keystone_registration_framework_path(), 'Resources/install.py')
     keystone_payload = os.path.join(keystone_registration_framework_path(), 'Resources/Keystone.tbz')
