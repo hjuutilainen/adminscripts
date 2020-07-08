@@ -11,6 +11,9 @@ Created by Hannes Juutilainen, hjuutilainen@mac.com
 
 History:
 --------
+2020-07-08, Dan Hutchings
+- Fix syntax errors with "print" and "except" lines
+
 2019-08-05, Andy Duss
 - Fix keystone_registration_framework_path to point to correct directory
 
@@ -124,7 +127,7 @@ def keystone_install():
         p = subprocess.Popen(ksinstall_process, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (results, error) = p.communicate()
         if results:
-            print results
+            print (results)
         if p.returncode != 0:
             if error:
                 print >> sys.stderr, "%s" % error
@@ -160,7 +163,7 @@ def register_chrome_with_keystone():
         if error:
             print >> sys.stderr, "%s" % error
         if results:
-            print results
+            print (results)
         if p.returncode == 0:
             return True
         else:
@@ -183,18 +186,18 @@ def main(argv=None):
             print >> sys.stderr, "Error: Chrome is not installed on this computer"
             return 1
         if keystone_install():
-            print "Keystone installed"
+            print ("Keystone installed")
         else:
             print >> sys.stderr, "Error: Keystone install failed"
             return 1
         if register_chrome_with_keystone():
-            print "Registered Chrome with Keystone"
+            print ("Registered Chrome with Keystone")
             return 0
         else:
             print >> sys.stderr, "Error: Failed to register Chrome with Keystone"
             return 1
 
-    except Usage, err:
+    except Usage as err:
         print >> sys.stderr, err.msg
         print >> sys.stderr, "for help use --help"
         return 2
