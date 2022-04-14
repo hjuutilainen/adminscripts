@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
 """
 chrome-enable-autoupdates.py
@@ -11,6 +11,9 @@ Created by Hannes Juutilainen, hjuutilainen@mac.com
 
 History:
 --------
+2022-04-14, Johan McGwire
+- Port to Python3
+
 2019-08-05, Andy Duss
 - Fix keystone_registration_framework_path to point to correct directory
 
@@ -68,24 +71,25 @@ def chrome_installed():
 
 def chrome_version():
     """Returns Chrome version"""
-    info_plist = plistlib.readPlist(info_plist_path)
-    bundle_short_version = info_plist["CFBundleShortVersionString"]
+    with open(info_plist_path, 'rb') as info_plist_file:
+        info_plist = plistlib.load(info_plist_file)
+        bundle_short_version = info_plist["CFBundleShortVersionString"]
     return bundle_short_version
 
 
 def chrome_update_url():
     """Returns KSUpdateURL from Chrome Info.plist"""
-    info_plist = plistlib.readPlist(info_plist_path)
-    update_url = info_plist["KSUpdateURL"]
+    with open(info_plist_path, 'rb') as info_plist_file:
+        info_plist = plistlib.load(info_plist_file)
+        update_url = info_plist["KSUpdateURL"]
     return update_url
-
 
 def chrome_product_id():
     """Returns KSProductID from Chrome Info.plist"""
-    info_plist = plistlib.readPlist(info_plist_path)
-    product_id = info_plist["KSProductID"]
+    with open(info_plist_path, 'rb') as info_plist_file:
+        info_plist = plistlib.load(info_plist_file)
+        product_id = info_plist["KSProductID"]
     return product_id
-
 
 def keystone_registration_framework_path():
     """Returns KeystoneRegistration.framework path"""
@@ -124,16 +128,16 @@ def keystone_install():
         p = subprocess.Popen(ksinstall_process, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (results, error) = p.communicate()
         if results:
-            print results
+            print(results)
         if p.returncode != 0:
             if error:
-                print >> sys.stderr, "%s" % error
-            print >> sys.stderr, "Keystone install exited with code %i" % p.returncode
+                print("%s" % error, file=sys.stderr)
+            print("Keystone install exited with code %i" % p.returncode, file=sys.stderr)
 
         # Since we used --force argument, succeed no matter what the exit code was.
         return True
     else:
-        print >> sys.stderr, "Error: KeystoneRegistration.framework not found"
+        print("Error: KeystoneRegistration.framework not found", file=sys.stderr)
         return False
 
 
@@ -158,15 +162,15 @@ def register_chrome_with_keystone():
         p = subprocess.Popen(ksadmin_process, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (results, error) = p.communicate()
         if error:
-            print >> sys.stderr, "%s" % error
+            print("%s" % error, file=sys.stderr)
         if results:
-            print results
+            print(results)
         if p.returncode == 0:
             return True
         else:
             return False
     else:
-        print >> sys.stderr, "Error: %s doesn't exist" % ksadmin
+        print("Error: %s doesn't exist" % ksadmin, file=sys.stderr)
         return False
 
 
@@ -176,27 +180,27 @@ def main(argv=None):
     try:
         # Check for root
         if os.geteuid() != 0:
-            print >> sys.stderr, "This script must be run as root"
+            print("This script must be run as root", file=sys.stderr)
             return 1
 
         if not chrome_installed():
-            print >> sys.stderr, "Error: Chrome is not installed on this computer"
+            print("Error: Chrome is not installed on this computer", file=sys.stderr)
             return 1
         if keystone_install():
-            print "Keystone installed"
+            print("Keystone installed")
         else:
-            print >> sys.stderr, "Error: Keystone install failed"
+            print("Error: Keystone install failed", file=sys.stderr)
             return 1
         if register_chrome_with_keystone():
-            print "Registered Chrome with Keystone"
+            print("Registered Chrome with Keystone")
             return 0
         else:
-            print >> sys.stderr, "Error: Failed to register Chrome with Keystone"
+            print("Error: Failed to register Chrome with Keystone", file=sys.stderr)
             return 1
 
-    except Usage, err:
-        print >> sys.stderr, err.msg
-        print >> sys.stderr, "for help use --help"
+    except Exception as err:
+        print(err, file=sys.stderr)
+        print("for help use --help", file=sys.stderr)
         return 2
 
 
